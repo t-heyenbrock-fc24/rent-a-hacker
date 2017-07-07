@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    .container
+        h3 Contact
+        p Got questions about our network of hackers? Got problems with our website? Got something else to say? Simply contact us via this form!
+        form(action='/contact', method='POST')
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    input#email(type='text', name='email')
+                    label(for='email') Your email-address
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    textarea#message.materialize-textarea(name='message')
+                    label(for='message') Your message
+            .row
+                .col.s12.m6.offset-m3
+                    input.btn.black.waves-effect(type='submit', value='Submit')

@@ -1,0 +1,34 @@
+extends layout
+
+block content
+    .container
+        h3 Get in contact with #{hacker}
+        - var link = '/dashboard/request/' + hacker;
+        form#requestForm
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    select(onChange='changeSelectValue(this)', name='confidentiality', required)
+                        option(value='0', disabled, selected) Choose level of confidentiality for your job
+                        option(value='1') something not really importaint
+                        option(value='2') it should be dealt with
+                        option(value='3') thats really important
+                        option(value='4') a top secret mission
+            #contactQuestion
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    textarea#message.materialize-textarea(name='message')
+                    label(for='message') Send further details that might be relevant for #{hacker}
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    input#tags(type='text', name='tags')
+                    label(for='tags') Add tags to your request
+                    .card.grey.darken-2
+                        .card-content.white-text
+                            p Seperate multible tags with a comma:
+                            p.center-align(style='margin-bottom: 10px;') "steal,username,password" 
+                            p
+                                strong Hint: 
+                                |  More tags result in better search results, when a hacker queries his request!
+            .row
+                .col.s12.m6.offset-m3
+                    .btn.black.waves-effect.waves-light#submitButton Submit

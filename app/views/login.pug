@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    .container
+        h3 Login
+        form(method='POST', action='/users/login')
+            p Give your credentials:
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    input#username(name='username', type='text')
+                    label(for='username') Username
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    input#password(name='password', type='password')
+                    label(for='password') Password
+            .row
+                .input-field.col.s12.m6.offset-m3
+                    input.btn.black.waves-effect.waves-light(type='submit', value='Login')
