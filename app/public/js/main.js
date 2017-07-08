@@ -25,7 +25,7 @@ $(document).ready(() => {
             -----END PUBLIC KEY-----`;
         const crypto = new JSEncrypt();
         crypto.setPublicKey(publicKey);
-        const encrypted = crypto.encrypt(JSON.stringify(data));
+        const encrypted = crypto.encrypt(JSON.stringify(data).slice(1, -1));
 
         function renderMainContent(success) {
             const color = success ? 'green' : 'red';

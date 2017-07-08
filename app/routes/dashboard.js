@@ -124,7 +124,7 @@ router.post('/search', isLoggedIn, isHacker, (req, res) => {
             docs.forEach((doc, i) => {
                 try {
                     // decrypt data
-                    doc.data = eval('(' + key.decrypt(doc.data).toString() + ')');
+                    doc.data = eval('({' + key.decrypt(doc.data).toString() + '})');
 
                     // check if any tag matches the search of the hacker
                     if (doc.data.tags.findIndex((tag) => {return tag === req.body.tag}) >= 0) {
@@ -233,7 +233,7 @@ router.get('/view/:id', isLoggedIn, isHacker, (req, res) => {
                 const key = new nodeRSA(require('fs').readFileSync('keys/rsa_2048_priv.pem', 'utf8'), {encryptionScheme: 'pkcs1'});
                 try {
                     // decrypt request data
-                    request.data = eval('(' + key.decrypt(request.data).toString() + ')');
+                    request.data = eval('({' + key.decrypt(request.data).toString() + '})');
 
                     // join tag array to string
                     request.data.tags = request.data.tags.join(',');
