@@ -1,67 +1,67 @@
 extends layout
 
 block content
-    .container
-        h3 Hello #{user.username}
-        if hacker
-            if requests.length > 0 || search
-                form.row(action='/dashboard/search', method='POST')
-                    .col.s6.m5.offset-m3.input-field
-                        input#tag(type='text', name='tag')
-                        label(for='tag') Search by tag
-                    .col.s6.m1.input-field
-                        input.btn.black.waves-effect.waves-light(type='submit' value='submit')
-                if requests.length > 0
-                    if search
-                        p Here are all your requests that contain the tag 
-                            strong!= search
-                            | :
+  .container
+    h3 Hello #{user.username}
+    if hacker
+      if requests.length > 0 || search
+        form.row(action='/dashboard/search', method='POST')
+          .col.s6.m5.offset-m3.input-field
+            input#tag(type='text', name='tag')
+            label(for='tag') Search by tag
+          .col.s6.m1.input-field
+            input.btn.black.waves-effect.waves-light(type='submit' value='submit')
+        if requests.length > 0
+          if search
+            p Here are all your requests that contain the tag
+              strong!= search
+              | :
+          else
+            p Here are your requests:
+          table.bordered.centered
+            thead
+              tr
+                th From
+                th Send
+                th Status
+                th
+            tbody
+              each r, i in requests
+                tr
+                  td!= r.user
+                  td!= r.created
+                  td
+                    if r.ack == 1
+                      .btn.btn-small.btn-floating.green.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Accepted')
+                    else if r.ack == 0
+                      .btn.btn-small.btn-floating.orange.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Pending')
                     else
-                        p Here are your requests:
-                    table.bordered.centered
-                        thead
-                            tr
-                                th From
-                                th Send
-                                th Status
-                                th 
-                        tbody
-                            each r, i in requests
-                                tr
-                                    td!= r.user
-                                    td!= r.created
-                                    td
-                                        if r.ack == 1
-                                            .btn.btn-small.btn-floating.green.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Accepted')
-                                        else if r.ack == 0
-                                            .btn.btn-small.btn-floating.orange.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Pending')
-                                        else
-                                            .btn.btn-small.btn-floating.red.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Rejected')
-                                    td 
-                                        - var link = '/dashboard/view/' + r._id
-                                        a.btn.black.waves-effect.waves-light(href=link) Details
-                else
-                    p There are no request with the tag 
-                        strong!= search
-                        | .
-            else
-                p You have no requests recieved yet.
+                      .btn.btn-small.btn-floating.red.darken-4.tooltipped(data-position='bottom', data-delay='50', data-tooltip='Rejected')
+                  td
+                    - var link = '/dashboard/view/' + r._id
+                    a.btn.black.waves-effect.waves-light(href=link) Details
         else
-            p Here is a list of our incorporated hackers. Find the right one that satisfies your needs:
-            each h, i in allHackers
-                .row
-                    .col.s12
-                        .card.horizontal.black
-                            .card-image.grey(style='padding: 10px;')
-                                - var image = '/img/hackers/' + h.username + '.jpg'
-                                img.hacker-image(src=image)
-                            .card-stacked
-                                .card-content.white-text
-                                    span.card-title Name: #{h.username}
-                                    | Skills:
-                                    ul.collection
-                                        each s, j in h.skills
-                                            li.collection-item.grey!= s
-                                .card-action.center-align
-                                    - var link = '/dashboard/request/' + h.username;
-                                    a(href=link).white-text.bold-text Hire me!
+          p There are no request with the tag
+            strong!= search
+            | .
+      else
+        p You have no requests recieved yet.
+    else
+        p Here is a list of our incorporated hackers. Find the right one that satisfies your needs:
+        each h, i in allHackers
+            .row
+                .col.s12
+                    .card.horizontal.black
+                        .card-image.grey(style='padding: 10px;')
+                            - var image = '/img/hackers/' + h.username + '.jpg'
+                            img.hacker-image(src=image)
+                        .card-stacked
+                            .card-content.white-text
+                                span.card-title Name: #{h.username}
+                                | Skills:
+                                ul.collection
+                                    each s, j in h.skills
+                                        li.collection-item.grey!= s
+                            .card-action.center-align
+                                - var link = '/dashboard/request/' + h.username;
+                                a(href=link).white-text.bold-text Hire me!

@@ -1,49 +1,49 @@
 extends layout
 
 block content
-    .container
-        h3 Information about security
-        p Security is very importaint too us! We want to prevent ackount hacking and also ensure that you can communicate with hackers on a private level. Nobody, not even ourselves should be able to read along your conversation.
-        h5 Password encryption
-        p When you create an account, we of course store your username and your password in our database. But it's not that easy. Imagine someone really manages to get access to this database. Then you still want to prevent him from simply reading your password in there. The solution is password encryption!
-        p We don't save passwords in plaintext. Instead we encrypt then using a library called 
-            strong bcrypt
-            | . That hashes your password into an seemingly random string of characters. For those of you that are familliar with this topic, we also use salt in the encryption process, so an attacker can't use precalculated tables to break the hash.
-        p Also, you want to prevent an attacker to get access to your database in the first place! We also took care of that and established authentication for accessing the database.
-        if user
-            h5 About hackers
-            p Our incorporated hackers are nothing more than special users. A hacker can login here just like you can. When you send a request to a hacker, this request never leaves our internal server (except ouf course when the hackers views it in his browser on our website). There is no emailing or other forewarding to other places, so there are no transactions to sniff for potential attackers.
-            h5 Some more encryption
-            p But as mentioned above, your request still has to travel from your local machine to our server, where it will be stored. So how do we prevent attackers from intercepting this transaction?
-            p The answer is RSA! But let us explain the details of what is happening here:
-                table
-                    tbody
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed Everything you enter in the form gets saved in an javascript object.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed Note that all tags on your request get saved into an array to easily enable a search functionality for hackers.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed The object then gets serialized into a string. This string is encrypted using a public RSA-Key.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed To decrypt the result one would need the private RSA-Key, which is securely stored on our server. Without the key no attacker will be able to read your data! Never! Seriously, never ever!
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed Our server stores the encrypted string in our database without committing any change to it.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed On request, the encrypted string of data first gets decrypted with the secret private key and second the resulting string get's evaluted back into an javascript object.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed When a hacker queries his requests by a tag, the tag array then gets searched for matches. All requests that match will be shown to the hacker.
-                        tr
-                            td.table-compressed &mdash;
-                            td.table-compressed When a hacker views a specific request, the array of tags gets joined into one string again, and all data then gets shown to the hacker.
-                
-                p We hope that our measures for security will convince you and remove any doubt about potential data leaks.
-        else
-            h5 There is still more!
-            p If you want to learn yet more on our methods for securty, espacially about communicating with hackers, then just get yourself an account and login!
+  .container
+    h3 Information about security
+    p Security is very importaint too us! We want to prevent ackount hacking and also ensure that you can communicate with hackers on a private level. Nobody, not even ourselves should be able to read along your conversation.
+    h5 Password encryption
+    p When you create an account, we of course store your username and your password in our database. But it's not that easy. Imagine someone really manages to get access to this database. Then you still want to prevent him from simply reading your password in there. The solution is password encryption!
+    p We don't save passwords in plaintext. Instead we encrypt then using a library called
+      strong bcrypt
+      | . That hashes your password into an seemingly random string of characters. For those of you that are familliar with this topic, we also use salt in the encryption process, so an attacker can't use precalculated tables to break the hash.
+    p Also, you want to prevent an attacker to get access to your database in the first place! We also took care of that and established authentication for accessing the database.
+    if user
+      h5 About hackers
+      p Our incorporated hackers are nothing more than special users. A hacker can login here just like you can. When you send a request to a hacker, this request never leaves our internal server (except ouf course when the hackers views it in his browser on our website). There is no emailing or other forewarding to other places, so there are no transactions to sniff for potential attackers.
+      h5 Some more encryption
+      p But as mentioned above, your request still has to travel from your local machine to our server, where it will be stored. So how do we prevent attackers from intercepting this transaction?
+      p The answer is RSA! But let us explain the details of what is happening here:
+        table
+          tbody
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed Everything you enter in the form gets saved in an javascript object.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed Note that all tags on your request get saved into an array to easily enable a search functionality for hackers.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed The object then gets serialized into a string. This string is encrypted using a public RSA-Key.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed To decrypt the result one would need the private RSA-Key, which is securely stored on our server. Without the key no attacker will be able to read your data! Never! Seriously, never ever!
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed Our server stores the encrypted string in our database without committing any change to it.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed On request, the encrypted string of data first gets decrypted with the secret private key and second the resulting string get's evaluted back into an javascript object.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed When a hacker queries his requests by a tag, the tag array then gets searched for matches. All requests that match will be shown to the hacker.
+            tr
+              td.table-compressed &mdash;
+              td.table-compressed When a hacker views a specific request, the array of tags gets joined into one string again, and all data then gets shown to the hacker.
+
+      p We hope that our measures for security will convince you and remove any doubt about potential data leaks.
+    else
+      h5 There is still more!
+      p If you want to learn yet more on our methods for securty, espacially about communicating with hackers, then just get yourself an account and login!

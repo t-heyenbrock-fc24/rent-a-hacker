@@ -1,58 +1,58 @@
 extends layout
 
 block content
-    if !messages
-        .container
-            h3 Request from #{request.user}
-            | Here's the whole request:
-            table.bordered
-                tbody
-                    tr
-                        td.bold-text Sent at:
-                        td!= request.created
-                    tr
-                        td.bold-text Level of confidentiality:
-                        td!= request.data.confidentiality
-                    if request.data.phoneNumber
-                        tr
-                            td.bold-text Phone number:
-                            td!= request.data.phoneNumber
-                    if request.data.email
-                        tr
-                            td.bold-text Email:
-                            td!= request.data.email
-                    if request.data.address
-                        tr
-                            td.bold-text Address:
-                            td!= request.data.address
-                    if request.data.secretPlace
-                        tr
-                            td.bold-text Secret meeting place:
-                            td!= request.data.secretPlace
-                    tr
-                        td.bold-text Message:
-                        td!= request.data.message
-                    tr
-                        td.bold-text Tags:
-                        td!= request.data.tags
-            if request.ack == 0 
-                - var action = '/dashboard/action/' + request._id
-                form(action=action, method='POST', style='margin-top: 50px;')
-                    input(type='text', name='id', value=request._id, hidden)
-                    .row
-                        .input-field.col.s12.m6.offset-m3                    
-                            select(name='action', required)
-                                option(value='', disabled='', selected='') Choose action
-                                option(value='1') Accept
-                                option(value='-1') Reject
-                    .row.center-align
-                        .col.s12.m6.offset-m3
-                            input.btn.black.waves-effect.waves-light(type='submit' value='submit')
-            else
-                .center-align
-                    .row
-                        .col.s12.m6.offset-m3
-                            - var color = request.ack == 1 ? 'green' : 'red'
-                            - var text = request.ack == 1 ? 'You accepted this request.' : 'You rejected this request.'
-                            div(class='card-panel hoverable ' + color + ' darken-4')
-                                span.white-text!= text
+  if !messages
+    .container
+      h3 Request from #{request.user}
+      | Here's the whole request:
+      table.bordered
+        tbody
+          tr
+            td.bold-text Sent at:
+            td!= request.created
+          tr
+            td.bold-text Level of confidentiality:
+            td!= request.data.confidentiality
+          if request.data.phoneNumber
+            tr
+              td.bold-text Phone number:
+              td!= request.data.phoneNumber
+          if request.data.email
+            tr
+              td.bold-text Email:
+              td!= request.data.email
+          if request.data.address
+            tr
+              td.bold-text Address:
+              td!= request.data.address
+          if request.data.secretPlace
+            tr
+              td.bold-text Secret meeting place:
+              td!= request.data.secretPlace
+          tr
+            td.bold-text Message:
+            td!= request.data.message
+          tr
+            td.bold-text Tags:
+            td!= request.data.tags
+      if request.ack == 0
+        - var action = '/dashboard/action/' + request._id
+        form(action=action, method='POST', style='margin-top: 50px;')
+          input(type='text', name='id', value=request._id, hidden)
+          .row
+            .input-field.col.s12.m6.offset-m3
+              select(name='action', required)
+                option(value='', disabled='', selected='') Choose action
+                option(value='1') Accept
+                option(value='-1') Reject
+          .row.center-align
+            .col.s12.m6.offset-m3
+              input.btn.black.waves-effect.waves-light(type='submit' value='submit')
+      else
+        .center-align
+          .row
+            .col.s12.m6.offset-m3
+              - var color = request.ack == 1 ? 'green' : 'red'
+              - var text = request.ack == 1 ? 'You accepted this request.' : 'You rejected this request.'
+              div(class='card-panel hoverable ' + color + ' darken-4')
+                span.white-text!= text

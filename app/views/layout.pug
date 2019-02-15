@@ -1,75 +1,75 @@
 doctype html
 html
-    head
-        meta(charset='utf-8')
-        meta(http-equiv='X-UA-Compatible', content='IE=edge')
-        meta(name='viewport', content='width=device-width, initial-scale=1')
-        title Rent-A-Hacker
-        link(rel='stylesheet' href='/css/materialize.min.css')
-        link(rel='stylesheet', href='https://fonts.googleapis.com/icon?family=Material+Icons')
-        link(rel='stylesheet' href='/css/style.css')
-    body
-        header
-            nav.black.white-text
-                .container.nav-wrapper
-                    a(href='/')
-                        img.brand-logo(src='/img/logo.png' height='64')
-                    a.button-collapse(href='#', data-activates='mobile-nav')
-                        i.material-icons menu
-                    ul.right.hide-on-med-and-down
-                        li
-                            a(href='/') Home
-                        if user
-                            li
-                                a(href='/dashboard') Dashboard
-                            li
-                                a(href='/users/logout') Logout
-                        else
-                            li
-                                a(href='/users/register') Register
-                            li
-                                a(href='/users/login') Login
-                    ul#mobile-nav.side-nav
-                        li
-                            a(href='/') Home
-                        if user
-                            li
-                                a(href='/dashboard') Dashboard
-                            li
-                                a(href='/users/logout') Logout
-                        else
-                            li
-                                a(href='/users/register') Register
-                            li
-                                a(href='/users/login') Login
-        main
-            .container
-                if messages
-                    each message, i in messages
-                        .row
-                            .col.s12
-                                - var color = message.color
-                                div(class='card-panel hoverable ' + color)
-                                    span.white-text!= message.text
-            block content
-            br
-            .fixed-action-btn(style='bottom: 45px; right: 24px;')
-                a#menu.btn.btn-floating.btn-large.grey.darken-2
-                    i.material-icons info_outline
-            .tap-target.grey(data-activates='menu')
-                .tap-target-content
-                    h5 Concerned about security?
-                    p We are too! Read more about this topic on our information page.
-                    a.btn.black.waves-effect.waves-light(href='/about') click here
-        footer.page-footer.black.white-text
-            .container
-                .row
-                    .col.s12.m6
-                        p.center-align &copy; 2017&nbsp;&nbsp;&nbsp;&mdash;&nbsp;&nbsp;&nbsp;Rent-A-Hacker Lt.
-                    .col.s12.m6
-                        p.center-align
-                            a.white-text(href='/contact') Contact us
-    script(src='/js/jquery-3.2.1.min.js')
-    script(src='/js/materialize.min.js')
-    script(src='/js/jsencrypt.min.js')
-    script(src='/js/main.js')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    title Rent-A-Hacker
+    link(rel='stylesheet' href='/css/materialize.min.css')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/icon?family=Material+Icons')
+    link(rel='stylesheet' href='/css/style.css')
+  body
+    header
+      nav.black.white-text
+        .container.nav-wrapper
+          a(href='/')
+            img.brand-logo(src='/img/logo.png' height='64')
+          a.button-collapse(href='#', data-activates='mobile-nav')
+            i.material-icons menu
+          ul.right.hide-on-med-and-down
+            li
+              a(href='/') Home
+            if user
+              li
+                a(href='/dashboard') Dashboard
+              li
+                a(href='/users/logout') Logout
+            else
+              li
+                a(href='/users/register') Register
+              li
+                a(href='/users/login') Login
+          ul#mobile-nav.side-nav
+            li
+              a(href='/') Home
+            if user
+              li
+                a(href='/dashboard') Dashboard
+              li
+                a(href='/users/logout') Logout
+            else
+              li
+                a(href='/users/register') Register
+              li
+                a(href='/users/login') Login
+    main
+      .container
+        if messages
+          each message, i in messages
+            .row
+              .col.s12
+                - var color = message.color
+                div(class='card-panel hoverable ' + color)
+                  span.white-text!= message.text
+      block content
+      br
+      .fixed-action-btn(style='bottom: 45px; right: 24px;')
+        a#menu.btn.btn-floating.btn-large.grey.darken-2
+          i.material-icons info_outline
+      .tap-target.grey(data-activates='menu')
+        .tap-target-content
+          h5 Concerned about security?
+          p We are too! Read more about this topic on our information page.
+          a.btn.black.waves-effect.waves-light(href='/about') click here
+    footer.page-footer.black.white-text
+      .container
+        .row
+          .col.s12.m6
+            p.center-align &copy; 2017&nbsp;&nbsp;&nbsp;&mdash;&nbsp;&nbsp;&nbsp;Rent-A-Hacker Lt.
+          .col.s12.m6
+            p.center-align
+              a.white-text(href='/contact') Contact us
+  script(src='/js/jquery-3.2.1.min.js')
+  script(src='/js/materialize.min.js')
+  script(src='/js/jsencrypt.min.js')
+  script(src='/js/main.js')

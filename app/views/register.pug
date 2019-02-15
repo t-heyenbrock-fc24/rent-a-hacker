@@ -1,22 +1,22 @@
 extends layout
 
 block content
-    .container
-        h3 Register
-        p Simply register to get the full insight into our network of professional hackers. No email or other personal data is required! We put anonymity on a high scale here!  
-        form(method='POST', action='/users/register')
-            .row
-                .input-field.col.s12.m6.offset-m3
-                    input#username(name='username', type='text')
-                    label(for='username') Username
-            .row
-                .input-field.col.s12.m6.offset-m3
-                    input#password(name='password', type='password')
-                    label(for='password') Password
-            .row
-                .input-field.col.s12.m6.offset-m3
-                    input#passwordConfirm(name='passwordConfirm', type='password')
-                    label(for='passwordConfirm') Password again
-            .row
-                .input-field.col.s12.m6.offset-m3
-                    input.btn.black.waves-effect.waves-light(type='submit', value='Register')
+  .container
+    h3 Register
+    p Simply register to get the full insight into our network of professional hackers. No email or other personal data is required! We put anonymity on a high scale here!
+    form(method='POST', action='/users/register')
+      .row
+        .input-field.col.s12.m6.offset-m3
+          input#username(name='username', type='text')
+          label(for='username') Username
+      .row
+        .input-field.col.s12.m6.offset-m3
+          input#password(name='password', type='password')
+          label(for='password') Password
+      .row
+        .input-field.col.s12.m6.offset-m3
+          input#passwordConfirm(name='passwordConfirm', type='password')
+          label(for='passwordConfirm') Password again
+      .row
+        .input-field.col.s12.m6.offset-m3
+          input.btn.black.waves-effect.waves-light(type='submit', value='Register')
