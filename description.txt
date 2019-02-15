@@ -1,1 +1,0 @@
-Finally, hackers for everyone! These guys also seem to have an eye for security...let's show them that they have yet much to learn. Get access to the web-server to execute some code there and get a flag. (Hint: You'll probably need to hack into a hackers account for that!)
