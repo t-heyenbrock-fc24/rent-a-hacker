@@ -4,18 +4,18 @@ This is a simple web application that shall demonstrate security issues related 
 
 ## Installation
 
-This project resides in a Docker container, so to get it up an running you need to have Docker installed on your machine. In case you don't, go to https://www.docker.com/ and download the latest version.
+This project resides in a Docker container, so to get it up an running you need to have Docker installed on your machine. In case you don't, go to [https://www.docker.com/](https://www.docker.com/) and download the latest version.
 
 Here are all steps for building the Docker image:
 
-```
+```sh
 git clone https://github.com/thomasheyenbrock/rent-a-hacker
 cd rent-a-hacker
 docker build -t rent-a-hacker .
-docker run -p 8080:80 -d test
+docker run -p 8080:80 -d rent-a-hacker
 ```
 
-After that you can access the project at http://localhost:8080. You can of course use another port than `8080` on your local machine.
+After that you can access the project at [http://localhost:8080](http://localhost:8080). You can of course use another port than `8080` on your local machine.
 
 ## Challenge
 
