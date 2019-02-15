@@ -14,7 +14,7 @@ router.get("/register", (req, res) => {
 });
 
 // register a user
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   // check if user is already logged in
   if (req.session.user) {
     // send a notification message and redirect to dashboard
@@ -44,86 +44,57 @@ router.post("/register", (req, res) => {
     return;
   }
 
-  // generate salt
-  bcrypt.genSalt(16, (err, salt) => {
+  let client;
+
+  try {
+    // generate salt
+    const salt = bcrypt.genSaltSync(16);
+
+    // hash the submitted password using the created salt
+    const hash = bcrypt.hashSync(password, salt);
+
+    // connect to mongodb
+    client = await MongoClient.connect(config.url);
     // check for errors
-    if (err) {
-      // salt couln't be created, render error message
+    if (!client) {
+      // connection not successful, render error message
       handleError(req, res, null, "register");
       return;
     }
 
-    // hash the submitted password using the created salt
-    bcrypt.hash(password, salt, (err, hash) => {
-      // check for errors
-      if (err) {
-        // password couldn't be hashed, render error message
-        handleError(req, res, null, "register");
-        return;
-      }
+    // get the database
+    const db = client.db(config.database);
 
-      // connect to database
-      MongoClient.connect(config.database, (err, db) => {
-        // check for errors
-        if (err || !db) {
-          // connection not successful, render error message
-          handleError(req, res, null, "register");
-          return;
-        }
+    // query user collection for all users with submitted username
+    const docs = await db
+      .collection("users")
+      .find({ username })
+      .toArray();
 
-        // query user collection for all users with submitted username
-        db.collection("users")
-          .find({ username })
-          .toArray((err, docs) => {
-            // check for errors
-            if (err) {
-              // query not successful, render error message
-              handleError(req, res, null, "register");
+    // check if username already exists
+    if (docs.length > 0) {
+      // username already exists, render error message
+      handleError(req, res, null, "register");
+      return;
+    }
 
-              // close database connection
-              db.close();
-              return;
-            }
-
-            // check if username already exists
-            if (docs.length > 0) {
-              // username already exists, render error message
-              handleError(req, res, null, "register");
-
-              // close database connection
-              db.close();
-              return;
-            }
-
-            // insert user in user collection
-            db.collection("users").insert(
-              {
-                username,
-                password: hash
-              },
-              (err, result) => {
-                // close database connection
-                db.close();
-
-                // check for errors
-                if (err) {
-                  // insert not successful, render error message
-                  handleError(req, res, null, "register");
-                  return;
-                }
-
-                // set message in session object
-                req.session.message =
-                  "Registration successful! You can now login.";
-
-                // redirect to login
-                res.redirect("/users/login");
-              }
-            );
-          });
-      });
+    // insert user in user collection
+    await db.collection("users").insert({
+      username,
+      password: hash
     });
-  });
+
+    // set message in session object
+    req.session.message = "Registration successful! You can now login.";
+
+    // redirect to login
+    res.redirect("/users/login");
+  } catch (err) {
+    console.log(err);
+    handleError(req, res, null, "register");
+  } finally {
+    client && client.close();
+  }
 });
 
 // login form
@@ -153,7 +124,7 @@ router.get("/login", (req, res) => {
 });
 
 // submit login form
-router.post("/login", (req, res, next) => {
+router.post("/login", async (req, res) => {
   // check if user exists in session object
   if (req.session.user) {
     // user is already logged in, redirect to dashboard
@@ -171,61 +142,55 @@ router.post("/login", (req, res, next) => {
     return;
   }
 
-  // connect to database
-  MongoClient.connect(config.database, (err, db) => {
-    // check for errors
-    if (err || !db) {
+  let client;
+
+  try {
+    // connect to database
+    client = await MongoClient.connect(config.url);
+
+    if (!client) {
       // connection not successful, render error message
       handleError(req, res, null, "login");
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // query user collection for submitted username
-    db.collection("users")
+    const docs = await db
+      .collection("users")
       .find({ username })
-      .toArray((err, docs) => {
-        // close database connection
-        db.close();
+      .toArray();
 
-        // check for errors
-        if (err) {
-          // query not successful, render error message
-          handleError(req, res, null, "login");
-          return;
-        }
+    // was any user found for the username
+    const userFound = docs.length > 0;
 
-        // was any user found for the username
-        let userFound = docs.length > 0;
+    // get hash of the returned user, if no user was found use a dummy-hash
+    const hash = userFound
+      ? docs.pop().password
+      : "$2a$16$G6BB8k/knhnof8jD7OaLQuDTJYhCJbk0VUVO1CbVkgcmbbhQn.boK";
 
-        // get hash of the returned user, if no user was found use a dummy-hash
-        let hash = userFound
-          ? docs.pop().password
-          : "$2a$16$G6BB8k/knhnof8jD7OaLQuDTJYhCJbk0VUVO1CbVkgcmbbhQn.boK";
+    // compare submitted password with hash
+    const result = bcrypt.compareSync(password, hash);
 
-        // compare submitted password with hash
-        bcrypt.compare(password, hash, (err, result) => {
-          // check for errors
-          if (err) {
-            // comarison not successful, render error message
-            handleError(req, res, null, "login");
-            return;
-          }
+    if (result && userFound) {
+      // user was found and password did match hash, set user in session object
+      req.session.user = { username };
 
-          if (result && userFound) {
-            // user was found and password did match hash, set user in session object
-            req.session.user = { username };
+      // redirect to dashboard
+      res.redirect("/dashboard");
+      return;
+    }
 
-            // redirect to dashboard
-            res.redirect("/dashboard");
-            return;
-          } else {
-            // user was not found or password did not match hash, render error message
-            handleError(req, res, "Wrong username or password.", "login");
-            return;
-          }
-        });
-      });
-  });
+    // user was not found or password did not match hash, render error message
+    handleError(req, res, "Wrong username or password.", "login");
+  } catch (err) {
+    console.log(err);
+    handleError(req, res, null, "login");
+  } finally {
+    client && client.close();
+  }
 });
 
 // logout

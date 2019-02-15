@@ -1,4 +1,5 @@
 // require dependencies
+const fs = require("fs");
 const express = require("express");
 const { MongoClient, ObjectId } = require("mongodb");
 const nodeRSA = require("node-rsa");
@@ -10,7 +11,7 @@ const isLoggedIn = require("../src/isLoggedIn");
 const router = express.Router();
 
 // display dashboard
-router.get("/", isLoggedIn, (req, res) => {
+router.get("/", isLoggedIn, async (req, res) => {
   // check for messages in session object
   let messages = [];
   if (req.session.message) {
@@ -23,146 +24,123 @@ router.get("/", isLoggedIn, (req, res) => {
   // delete message in session object
   delete req.session["message"];
 
-  // connct to database
-  MongoClient.connect(config.database, (err, db) => {
+  let client;
+
+  try {
+    // connct to database
+    client = await MongoClient.connect(config.url);
     // check connection
-    if (err || !db) {
+    if (!client) {
       // connection not successful, render error message
       handleError(req, res);
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // query hacker collection for all hackers
-    db.collection("hackers")
+    const hackers = await db
+      .collection("hackers")
       .find()
-      .toArray((err, docs) => {
-        // check for errors
-        if (err) {
-          // query not successful, render error message
-          handleError(req, res);
+      .toArray();
 
-          // close database connection
-          db.close();
-          return;
-        }
+    // check if current user is a hacker
+    const isHacker = hackers.some(
+      hacker => hacker.username === req.session.user.username
+    );
 
-        // check if current user is a hacker
-        let hacker = false;
-        for (let i = 0; i < docs.length; i++) {
-          if (docs[i].username === req.session.user.username) {
-            hacker = true;
-          }
-        }
+    if (isHacker) {
+      // current user is a hacker, query request collection for all his requests
+      const requests = await db
+        .collection("requests")
+        .find({ hacker: req.session.user.username })
+        .sort({ created: -1 })
+        .toArray();
 
-        if (hacker) {
-          // current user is a hacker, query request collection for all his requests
-          db.collection("requests")
-            .find({ hacker: req.session.user.username })
-            .sort({ created: -1 })
-            .toArray((err, docs) => {
-              // close database connection
-              db.close();
-
-              // check for errors
-              if (err) {
-                // query not successful, render error message
-                handleError(req, res);
-                return;
-              }
-
-              // render dashboard for hacker with all requests
-              res.render("dashboard", {
-                user: req.session.user,
-                hacker,
-                requests: docs
-              });
-              return;
-            });
-        } else {
-          // close database connection
-          db.close();
-
-          // current user is no hacker, render dashboard for normal user with all hackers
-          res.render("dashboard", {
-            user: req.session.user,
-            hacker,
-            allHackers: docs
-          });
-          return;
-        }
+      // render dashboard for hacker with all requests
+      res.render("dashboard", {
+        user: req.session.user,
+        isHacker,
+        requests
       });
-  });
+    } else {
+      // current user is no hacker, render dashboard for normal user with all hackers
+      res.render("dashboard", {
+        user: req.session.user,
+        isHacker,
+        allHackers: hackers
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    handleError(req, res);
+  } finally {
+    client && client.close();
+  }
 });
 
 // display dashboard with filtered requests (by tag)
-router.post("/search", isLoggedIn, isHacker, (req, res) => {
-  // connect to database
-  MongoClient.connect(config.database, (err, db) => {
+router.post("/search", isLoggedIn, isHacker, async (req, res) => {
+  let client;
+
+  try {
+    // connect to database
+    const client = await MongoClient.connect(config.url);
     // check for errors
-    if (err || !db) {
+    if (!client) {
       // connection not successful, render error message
       handleError(req, res);
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // query request collection for all request of the current hacker
-    db.collection("requests")
+    const docs = await db
+      .collection("requests")
       .find({ hacker: req.session.user.username })
-      .toArray((err, docs) => {
-        // close database connection
-        db.close();
+      .toArray();
 
-        // check for errors
-        if (err) {
-          // query not successful, render error message
-          handleError(req, res);
-        }
-
-        // check if the hacker did specify any tag to filter for
-        if (!req.body.tag) {
-          // the hacker did not specify a tag, render dashboard with all requests
-          res.render("dashboard", {
-            user: req.session.user,
-            requests: docs,
-            hacker: req.session.user.username
-          });
-        }
-
-        // create private rsa-key for decryption
-        const key = new nodeRSA(
-          require("fs").readFileSync("keys/rsa_2048_priv.pem", "utf8"),
-          { encryptionScheme: "pkcs1" }
-        );
-
-        // run through each request in the query result
-        let requests = [];
-        docs.forEach((doc, i) => {
-          try {
-            // decrypt data
-            doc.data = eval("({" + key.decrypt(doc.data).toString() + "})");
-
-            // check if any tag matches the search of the hacker
-            if (
-              doc.data.tags.findIndex(tag => {
-                return tag === req.body.tag;
-              }) >= 0
-            ) {
-              // a tag did match, push request in local array
-              requests.push(doc);
-            }
-          } catch (err) {}
-        });
-
-        // render dashboard with those requests that did match the searched tag
-        res.render("dashboard", {
-          user: req.session.user,
-          requests,
-          hacker: req.session.user.username,
-          search: req.body.tag
-        });
-        return;
+    // check if the hacker did specify any tag to filter for
+    if (!req.body.tag) {
+      // the hacker did not specify a tag, render dashboard with all requests
+      res.render("dashboard", {
+        user: req.session.user,
+        requests: docs,
+        isHacker: req.session.user.username
       });
-  });
+      return;
+    }
+
+    // create private rsa-key for decryption
+    const key = new nodeRSA(fs.readFileSync("keys/rsa_2048_priv.pem", "utf8"), {
+      encryptionScheme: "pkcs1"
+    });
+
+    // run through each request in the query result
+    const requests = docs
+      .map(doc => ({
+        ...doc,
+        decryptedData: eval("({" + key.decrypt(doc.data).toString() + "})")
+      }))
+      .filter(doc => doc.decryptedData.tags.includes(req.body.tag))
+      .map(({ decryptedData, ...doc }) => doc);
+
+    // render dashboard with those requests that did match the searched tag
+    res.render("dashboard", {
+      user: req.session.user,
+      requests,
+      isHacker: req.session.user.username,
+      search: req.body.tag
+    });
+  } catch (err) {
+    console.log(err);
+    handleError(req, res);
+  } finally {
+    client && client.close();
+  }
 });
 
 // display request form for a specific hacker
@@ -173,160 +151,145 @@ router.get("/request/:hacker", isLoggedIn, (req, res) => {
 });
 
 // submit a request to a hacker
-router.post("/request/:hacker", isLoggedIn, (req, res) => {
-  // connect to database
-  MongoClient.connect(config.database, (err, db) => {
+router.post("/request/:hacker", isLoggedIn, async (req, res) => {
+  let client;
+
+  try {
+    // connect to database
+    const client = await MongoClient.connect(config.url);
+
     // check for errors
-    if (err || !db) {
+    if (!client) {
       // connection not successful, render error message
       handleError(req, res);
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // insert the submitted form data in request collection
-    db.collection("requests").insert(
-      {
-        user: req.session.user.username,
-        hacker: req.params.hacker,
-        data: req.body.data,
-        ack: 0,
-        created: new Date()
-      },
-      (err, result) => {
-        // close database connection
-        db.close();
+    await db.collection("requests").insert({
+      user: req.session.user.username,
+      hacker: req.params.hacker,
+      data: req.body.data,
+      ack: 0,
+      created: new Date()
+    });
 
-        // check for errors
-        if (err) {
-          // insert not successful, render error message
-          handleError(req, res);
-          return;
-        }
+    // set message in session object
+    req.session.message = "You successfully sent a request.";
 
-        // send success
-        res.sendStatus(200);
-      }
-    );
-  });
+    // send success
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    handleError(req, res);
+  } finally {
+    client && client.close();
+  }
 });
 
 // view a specific request
-router.get("/view/:id", isLoggedIn, isHacker, (req, res) => {
-  // check if id in url is a valid ObjectId
-  try {
-    ObjectId(req.params.id);
-  } catch (err) {
-    // id is not a valid ObjectId, render error message
-    handleError(req, res);
-    return;
-  }
+router.get("/view/:id", isLoggedIn, isHacker, async (req, res) => {
+  let client;
 
-  // connect to database
-  MongoClient.connect(config.database, (err, db) => {
+  try {
+    // connect to database
+    const client = await MongoClient.connect(config.url);
+
     // check for errors
-    if (err || !db) {
+    if (!client) {
       // connection not successful, render error message
       handleError(req, res);
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // query request collection for the specific request
-    db.collection("requests")
+    const docs = await db
+      .collection("requests")
       .find({ _id: ObjectId(req.params.id), hacker: req.session.user.username })
-      .toArray((err, docs) => {
-        // close database connection
-        db.close();
+      .toArray();
 
-        // check for errors
-        if (err) {
-          // query not successful, render error message
-          handleError(req, res);
-          return;
-        }
+    if (docs.length === 0) {
+      // no request was found for the current hacker, render error message
+      handleError(req, res, "This is not the request you are looking for...");
+      return;
+    }
 
-        if (docs.length === 0) {
-          // no request was found for the current hacker, render error message
-          handleError(
-            req,
-            res,
-            "This is not the request you are looking for..."
-          );
-          return;
-        } else {
-          // save result locally
-          let request = docs.pop();
+    // save result locally
+    const request = docs.pop();
 
-          // create rsa-key for decryption
-          const key = new nodeRSA(
-            require("fs").readFileSync("keys/rsa_2048_priv.pem", "utf8"),
-            { encryptionScheme: "pkcs1" }
-          );
-          try {
-            // decrypt request data
-            request.data = eval(
-              "({" + key.decrypt(request.data).toString() + "})"
-            );
+    // create rsa-key for decryption
+    const key = new nodeRSA(fs.readFileSync("keys/rsa_2048_priv.pem", "utf8"), {
+      encryptionScheme: "pkcs1"
+    });
 
-            // join tag array to string
-            request.data.tags = request.data.tags.join(",");
-          } catch (err) {
-            // decryption not successful, render error message
-            handleError(req, res);
-            return;
-          }
+    // decrypt request data
+    request.data = eval("({" + key.decrypt(request.data).toString() + "})");
 
-          // render view-view with current user and request
-          res.render("view", { user: req.session.user, request });
-          return;
-        }
-      });
-  });
+    // join tag array to string
+    request.data.tags = request.data.tags.join(",");
+
+    // render view-view with current user and request
+    res.render("view", { user: req.session.user, request });
+  } catch (err) {
+    console.log(err);
+    handleError(req, res);
+    return;
+  } finally {
+    client && client.close();
+  }
 });
 
 // accept or reject request
-router.post("/action/:id", isLoggedIn, isHacker, (req, res) => {
-  // check if id in url is valid ObjectId
-  try {
-    ObjectId(req.params.id);
-  } catch (err) {
-    // id in url is no valid ObjectId, render error message
-    handleError(req, res);
-    return;
-  }
+router.post("/action/:id", isLoggedIn, isHacker, async (req, res) => {
+  let client;
 
-  // connect to database
-  MongoClient.connect(config.database, (err, db) => {
+  try {
+    // connect to database
+    client = await MongoClient.connect(config.url);
+
     // check for errors
-    if (err || !db) {
+    if (!client) {
       // connection not successful
       handleError(req, res);
       return;
     }
 
+    // get the database
+    const db = client.db(config.database);
+
     // update request with submitted id
-    db.collection("requests").update(
-      { _id: ObjectId(req.body.id) },
-      { $set: { ack: req.body.action } },
-      (err, result) => {
-        // close database connection
-        db.close();
+    const result = await db
+      .collection("requests")
+      .update(
+        { _id: ObjectId(req.body.id) },
+        { $set: { ack: req.body.action } }
+      );
 
-        // check for errors
-        if (err || result.result.ok != 1) {
-          // update not successful, render error message
-          handleError(req, res);
-          return;
-        }
+    // check for errors
+    if (result.result.ok != 1) {
+      // update not successful, render error message
+      handleError(req, res);
+      return;
+    }
 
-        // set message in session object
-        req.session.message = "You successfully accepted this request.";
+    // set message in session object
+    req.session.message = "You successfully accepted this request.";
 
-        // redirect to dashboard
-        res.redirect("/dashboard");
-        return;
-      }
-    );
-  });
+    // redirect to dashboard
+    res.redirect("/dashboard");
+  } catch (err) {
+    console.log(err);
+    handleError(req, res);
+    return;
+  } finally {
+    client && client.close();
+  }
 });
 
 // export router

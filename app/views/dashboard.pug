@@ -3,7 +3,7 @@ extends layout
 block content
   .container
     h3 Hello #{user.username}
-    if hacker
+    if isHacker
       if requests.length > 0 || search
         form.row(action='/dashboard/search', method='POST')
           .col.s6.m5.offset-m3.input-field

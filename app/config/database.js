@@ -5,5 +5,6 @@ const password =
 
 // export connection string
 module.exports = {
-  database: `mongodb://${username}:${password}@localhost:27017/rentahacker`
+  url: `mongodb://localhost:27017`,
+  database: "rentahacker"
 };

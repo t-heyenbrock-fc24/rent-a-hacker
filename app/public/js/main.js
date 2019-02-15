@@ -37,7 +37,9 @@ $(document).ready(function() {
         '<div class="container">' +
         '  <div class="row">' +
         '    <div class=" col s12">' +
-        '      <div class="card-panel hoverable ${color} darken-4">' +
+        '      <div class="card-panel hoverable ' +
+        color +
+        ' darken-4">' +
         '        <span class="white-text">' +
         message +
         "        </span>" +
